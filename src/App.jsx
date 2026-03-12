@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { BlogList, ArticleView } from "./Blog.jsx";
 
 // ── Official Rates (Sources: Crédit du Maroc, Valfoncier, CGI 2025) ──────────
 const RATES = {
@@ -77,6 +78,7 @@ const TABS = [
   { id: "enregistrement", icon: "🏛️", label: "Droits d'enregistrement", sub: "Taxes DGI sur la mutation" },
   { id: "credit",       icon: "🏦", label: "Simulation crédit",        sub: "Mensualités & coût total" },
   { id: "total",        icon: "🏠", label: "Coût total d'acquisition", sub: "Vision complète prix réel" },
+  { id: "blog",         icon: "📚", label: "Guides & Articles",        sub: "SEO articles FR & AR" },
 ];
 
 // ── Shared Input Components ───────────────────────────────────
@@ -794,6 +796,18 @@ function CoutTotal() {
 // ── MAIN ──────────────────────────────────────────────────────
 export default function ImmobilierMA() {
   const [tab, setTab] = useState("notaire");
+  const [articleSlug, setArticleSlug] = useState(null);
+
+  const handleCTA = (targetTab) => {
+    setArticleSlug(null);
+    setTab(targetTab);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleArticle = (slug) => {
+    if (slug) setArticleSlug(slug);
+    else setArticleSlug(null);
+  };
 
   return (
     <div style={{
@@ -875,11 +889,22 @@ export default function ImmobilierMA() {
 
       {/* CONTENT */}
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "24px 16px 48px" }}>
-        <div className="content" key={tab}>
+        <div className="content" key={tab + articleSlug}>
           {tab === "notaire"        && <FraisNotaire />}
           {tab === "enregistrement" && <DroitsEnregistrement />}
           {tab === "credit"         && <SimulationCredit />}
           {tab === "total"          && <CoutTotal />}
+          {tab === "blog" && !articleSlug && (
+            <BlogList onArticle={(slug) => setArticleSlug(slug)} lang="fr" />
+          )}
+          {tab === "blog" && articleSlug && (
+            <ArticleView
+              slug={articleSlug}
+              onBack={(pairSlug) => pairSlug ? setArticleSlug(pairSlug) : setArticleSlug(null)}
+              onCTA={handleCTA}
+              lang="fr"
+            />
+          )}
         </div>
 
         {/* Disclaimer */}
