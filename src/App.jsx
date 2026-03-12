@@ -84,11 +84,11 @@ const gray200 = "#E5E7EB";
 const gray400 = "#9CA3AF";
 
 const TABS = [
-  { id: "notaire",      icon: "📋", label: "Frais de notaire",         sub: "Calcul complet ligne par ligne" },
-  { id: "enregistrement", icon: "🏛️", label: "Droits d'enregistrement", sub: "Taxes DGI sur la mutation" },
-  { id: "credit",       icon: "🏦", label: "Simulation crédit",        sub: "Mensualités & coût total" },
-  { id: "total",        icon: "🏠", label: "Coût total d'acquisition", sub: "Vision complète prix réel" },
-  { id: "blog",         icon: "📚", label: "Guides & Articles",        sub: "SEO articles FR & AR" },
+  { id: "notaire",        icon: "📋", label: "Frais de notaire",         short: "Notaire",       sub: "Calcul complet ligne par ligne" },
+  { id: "enregistrement", icon: "🏛️", label: "Droits d'enregistrement", short: "Enregistrement", sub: "Taxes DGI sur la mutation" },
+  { id: "credit",         icon: "🏦", label: "Simulation crédit",        short: "Crédit",         sub: "Mensualités & coût total" },
+  { id: "total",          icon: "🏠", label: "Coût total d'acquisition", short: "Coût total",     sub: "Vision complète prix réel" },
+  { id: "blog",           icon: "📚", label: "Guides & Articles",        short: "Articles",       sub: "SEO articles FR & AR" },
 ];
 
 // ── Shared Input Components ───────────────────────────────────
@@ -255,8 +255,45 @@ function Card({ title, icon, children, accent }) {
   );
 }
 
+// ── Also Try suggestions ─────────────────────────────────────
+function AlsoTry({ currentTab, onSwitch }) {
+  const suggestions = TABS.filter(t => t.id !== currentTab && t.id !== "blog");
+  return (
+    <div style={{
+      marginTop: 14, padding: "14px 16px",
+      background: emeraldLight, border: `1px solid ${emeraldBorder}`,
+      borderRadius: 12,
+    }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: emeraldDark, marginBottom: 10, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+        💡 Allez plus loin
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {suggestions.map(t => (
+          <button key={t.id} onClick={() => onSwitch(t.id)} style={{
+            display: "flex", alignItems: "center", gap: 10,
+            padding: "9px 12px", borderRadius: 10,
+            border: `1px solid ${emeraldBorder}`, background: white,
+            cursor: "pointer", fontFamily: "inherit", textAlign: "left",
+            transition: "all 0.15s",
+          }}
+            onMouseEnter={e => { e.currentTarget.style.background = emeraldLight; e.currentTarget.style.borderColor = emeraldDark; }}
+            onMouseLeave={e => { e.currentTarget.style.background = white; e.currentTarget.style.borderColor = emeraldBorder; }}
+          >
+            <span style={{ fontSize: 20, flexShrink: 0 }}>{t.icon}</span>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: ink }}>{t.label}</div>
+              <div style={{ fontSize: 11, color: inkLight }}>{t.sub}</div>
+            </div>
+            <span style={{ marginLeft: "auto", color: emerald, fontSize: 14, flexShrink: 0 }}>→</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ── TAB 1: Frais de Notaire ───────────────────────────────────
-function FraisNotaire() {
+function FraisNotaire({ onSwitch }) {
   const isMobile = useIsMobile();
   const [price, setPrice] = useState(1500000);
   const [withAgency, setWithAgency] = useState(true);
@@ -414,13 +451,14 @@ function FraisNotaire() {
             })}
           </div>
         </Card>
+        <AlsoTry currentTab="notaire" onSwitch={onSwitch} />
       </div>
     </div>
   );
 }
 
 // ── TAB 2: Droits d'Enregistrement ───────────────────────────
-function DroitsEnregistrement() {
+function DroitsEnregistrement({ onSwitch }) {
   const isMobile = useIsMobile();
   const [price, setPrice] = useState(800000);
   const [type, setType] = useState("habitation");
@@ -551,13 +589,14 @@ function DroitsEnregistrement() {
             ))}
           </div>
         </Card>
+        <AlsoTry currentTab="enregistrement" onSwitch={onSwitch} />
       </div>
     </div>
   );
 }
 
 // ── TAB 3: Simulation Crédit ──────────────────────────────────
-function SimulationCredit() {
+function SimulationCredit({ onSwitch }) {
   const isMobile = useIsMobile();
   const [prix, setPrix] = useState(1200000);
   const [apport, setApport] = useState(300000);
@@ -673,13 +712,14 @@ function SimulationCredit() {
             Les banques marocaines accordent généralement un crédit si votre mensualité ne dépasse pas <strong>35% de votre revenu net mensuel</strong>. Pour cette mensualité, il vous faut un revenu minimum de <strong style={{ color: gold }}>{fmt(tauxEndettementSalaire)} MAD/mois</strong>.
           </div>
         </div>
+        <AlsoTry currentTab="credit" onSwitch={onSwitch} />
       </div>
     </div>
   );
 }
 
 // ── TAB 4: Coût Total Acquisition ────────────────────────────
-function CoutTotal() {
+function CoutTotal({ onSwitch }) {
   const isMobile = useIsMobile();
   const [prix, setPrix] = useState(1500000);
   const [withAgency, setWithAgency] = useState(true);
@@ -801,6 +841,7 @@ function CoutTotal() {
             )}
           </div>
         </Card>
+        <AlsoTry currentTab="total" onSwitch={onSwitch} />
       </div>
     </div>
   );
@@ -810,18 +851,17 @@ function CoutTotal() {
 export default function ImmobilierMA() {
   const [tab, setTab] = useState("notaire");
   const [articleSlug, setArticleSlug] = useState(null);
+  const [menuOpen, setMenuOpen] = useState(false);
   const isMobile = useIsMobile();
 
-  const handleCTA = (targetTab) => {
+  const switchTab = (newTab) => {
+    setTab(newTab);
+    setMenuOpen(false);
     setArticleSlug(null);
-    setTab(targetTab);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleArticle = (slug) => {
-    if (slug) setArticleSlug(slug);
-    else setArticleSlug(null);
-  };
+  const handleCTA = (targetTab) => switchTab(targetTab);
 
   return (
     <div style={{
@@ -842,33 +882,38 @@ export default function ImmobilierMA() {
         input:focus { outline: none; }
       `}</style>
 
-      {/* HERO HEADER */}
+      {/* ── STICKY HEADER ── */}
       <div style={{
         background: `linear-gradient(135deg, ${ink} 0%, ${inkMid} 60%, #1a3a6e 100%)`,
-        padding: "28px 24px 0",
+        padding: isMobile ? "16px 16px 0" : "28px 24px 0",
         position: "sticky", top: 0, zIndex: 20,
         boxShadow: "0 4px 24px rgba(0,0,0,0.15)",
       }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, flexWrap: "wrap", gap: 12 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+
+          {/* Top bar */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: isMobile ? 14 : 20, gap: 12 }}>
+            {/* Logo */}
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <div style={{
-                width: 42, height: 42, borderRadius: 12,
+                width: 40, height: 40, borderRadius: 12, flexShrink: 0,
                 background: `linear-gradient(135deg, ${emerald}, ${emeraldDark})`,
                 display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 22, boxShadow: `0 4px 12px rgba(10,123,92,0.4)`, flexShrink: 0,
+                fontSize: 20, boxShadow: `0 4px 12px rgba(10,123,92,0.4)`,
               }}>🏡</div>
               <div>
-                <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 900, color: white, letterSpacing: "-0.5px" }}>
+                <div style={{ fontSize: isMobile ? 17 : 22, fontWeight: 900, color: white, letterSpacing: "-0.5px" }}>
                   ImmobilierMA
                 </div>
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)" }}>
-                  {isMobile ? "Simulateur fiscal Maroc 2026" : "Frais de notaire · Enregistrement · Crédit · Coût total"}
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.55)" }}>
+                  {isMobile ? "Simulateur Maroc 2026" : "Frais de notaire · Enregistrement · Crédit · Coût total"}
                 </div>
               </div>
             </div>
+
+            {/* Desktop badges */}
             {!isMobile && (
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <div style={{ display: "flex", gap: 8 }}>
                 {[
                   { label: "✓ Données officielles CGI 2025", color: emerald },
                   { label: "🇲🇦 Maroc uniquement", color: "rgba(255,255,255,0.6)" },
@@ -881,60 +926,151 @@ export default function ImmobilierMA() {
                 ))}
               </div>
             )}
+
+            {/* Hamburger — mobile only */}
+            {isMobile && (
+              <button
+                onClick={() => setMenuOpen(o => !o)}
+                style={{
+                  background: menuOpen ? "rgba(10,123,92,0.3)" : "rgba(255,255,255,0.1)",
+                  border: `1px solid ${menuOpen ? emerald : "rgba(255,255,255,0.2)"}`,
+                  borderRadius: 10, padding: "8px 13px",
+                  color: white, fontSize: 18, lineHeight: 1,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}
+              >
+                {menuOpen ? "✕" : "☰"}
+              </button>
+            )}
           </div>
 
-          {/* TABS */}
-          <div style={{ display: "flex", gap: 2, overflowX: "auto" }}>
-            {TABS.map(t => (
-              <button key={t.id} onClick={() => setTab(t.id)} style={{
-                padding: isMobile ? "10px 10px" : "12px 16px", border: "none", fontFamily: "inherit",
-                background: "transparent",
-                borderBottom: `3px solid ${tab === t.id ? emerald : "transparent"}`,
-                color: tab === t.id ? white : "rgba(255,255,255,0.55)",
-                fontWeight: tab === t.id ? 700 : 500,
-                fontSize: isMobile ? 18 : 13, whiteSpace: "nowrap",
-                transition: "all 0.15s",
+          {/* Mobile dropdown menu */}
+          {isMobile && menuOpen && (
+            <div style={{
+              background: "#0f1525", borderRadius: "12px 12px 0 0",
+              border: "1px solid rgba(255,255,255,0.1)",
+              borderBottom: "none", overflow: "hidden", marginBottom: 0,
+            }}>
+              {TABS.map((t, i) => (
+                <button
+                  key={t.id}
+                  onClick={() => { switchTab(t.id); }}
+                  style={{
+                    width: "100%", display: "flex", alignItems: "center", gap: 14,
+                    padding: "15px 18px",
+                    border: "none",
+                    borderBottom: i < TABS.length - 1 ? "1px solid rgba(255,255,255,0.07)" : "none",
+                    background: tab === t.id ? "rgba(10,123,92,0.25)" : "transparent",
+                    cursor: "pointer", fontFamily: "inherit", textAlign: "left",
+                  }}
+                >
+                  <span style={{
+                    width: 36, height: 36, borderRadius: 10, flexShrink: 0,
+                    background: tab === t.id ? "rgba(10,123,92,0.4)" : "rgba(255,255,255,0.08)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: 18,
+                  }}>{t.icon}</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: tab === t.id ? emerald : white }}>
+                      {t.label}
+                    </div>
+                    <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", marginTop: 2 }}>
+                      {t.sub}
+                    </div>
+                  </div>
+                  {tab === t.id && (
+                    <span style={{ color: emerald, fontSize: 18, flexShrink: 0 }}>✓</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Desktop tabs */}
+          {!isMobile && (
+            <div style={{ display: "flex", gap: 2 }}>
+              {TABS.map(t => (
+                <button key={t.id} onClick={() => switchTab(t.id)} style={{
+                  padding: "12px 16px", border: "none", fontFamily: "inherit",
+                  background: "transparent",
+                  borderBottom: `3px solid ${tab === t.id ? emerald : "transparent"}`,
+                  color: tab === t.id ? white : "rgba(255,255,255,0.55)",
+                  fontWeight: tab === t.id ? 700 : 500,
+                  fontSize: 13, whiteSpace: "nowrap",
+                  transition: "all 0.15s",
+                  display: "flex", alignItems: "center", gap: 6,
+                }}>
+                  <span>{t.icon}</span>
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Mobile: show active tab name as pill */}
+          {isMobile && !menuOpen && (
+            <div style={{
+              display: "flex", alignItems: "center", justifyContent: "center",
+              padding: "10px 0 12px",
+              borderTop: "1px solid rgba(255,255,255,0.1)",
+            }}>
+              <div style={{
+                display: "flex", alignItems: "center", gap: 8,
+                background: "rgba(10,123,92,0.25)",
+                border: `1px solid ${emerald}50`,
+                borderRadius: 20, padding: "5px 14px",
               }}>
-                <span style={{ marginRight: isMobile ? 0 : 6 }}>{t.icon}</span>
-                {!isMobile && t.label}
-              </button>
-            ))}
-          </div>
+                <span>{TABS.find(t => t.id === tab)?.icon}</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: white }}>
+                  {TABS.find(t => t.id === tab)?.label}
+                </span>
+                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }}>
+                  — Appuyer sur ☰ pour changer
+                </span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* CONTENT */}
+      {/* ── CONTENT ── */}
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: isMobile ? "16px 12px 48px" : "24px 16px 48px" }}>
         <div className="content" key={tab + articleSlug}>
-          {tab === "notaire"        && <FraisNotaire />}
-          {tab === "enregistrement" && <DroitsEnregistrement />}
-          {tab === "credit"         && <SimulationCredit />}
-          {tab === "total"          && <CoutTotal />}
+          {tab === "notaire"        && <FraisNotaire onSwitch={switchTab} />}
+          {tab === "enregistrement" && <DroitsEnregistrement onSwitch={switchTab} />}
+          {tab === "credit"         && <SimulationCredit onSwitch={switchTab} />}
+          {tab === "total"          && <CoutTotal onSwitch={switchTab} />}
           {tab === "blog" && !articleSlug && (
             <BlogList onArticle={(slug) => setArticleSlug(slug)} lang="fr" />
           )}
           {tab === "blog" && articleSlug && (
             <ArticleView
               slug={articleSlug}
-              onBack={(pairSlug) => pairSlug ? setArticleSlug(pairSlug) : setArticleSlug(null)}
+              onBack={(pairSlug) => {
+                if (pairSlug && typeof pairSlug === "string") {
+                  setArticleSlug(pairSlug);
+                } else {
+                  setArticleSlug(null);
+                }
+              }}
               onCTA={handleCTA}
               lang="fr"
             />
           )}
         </div>
 
-        {/* Disclaimer */}
+        {/* ── DISCLAIMER ── */}
         <div style={{
-          marginTop: 28, padding: "12px 16px",
+          marginTop: 20, padding: "12px 16px",
           background: white, borderRadius: 10,
           border: `1px solid ${gray200}`, fontSize: 11, color: gray400,
           display: "flex", gap: 8, alignItems: "flex-start",
         }}>
           <span style={{ fontSize: 14, flexShrink: 0 }}>⚠️</span>
           <span>
-            Simulateur à titre indicatif uniquement. Données basées sur le CGI 2025, décret 2-16-375, et la loi 14.25. 
-            Les taux et barèmes sont susceptibles de changer. Consultez un notaire agréé au Maroc avant toute transaction. 
-            Sources: DGI, ANCFCC, Crédit du Maroc, Valfoncier.
+            Simulateur à titre indicatif uniquement. Données basées sur le CGI 2025, décret 2-16-375, et la loi 14.25.
+            Les taux et barèmes sont susceptibles de changer. Consultez un notaire agréé au Maroc avant toute transaction.
+            Sources : DGI, ANCFCC, Crédit du Maroc, Valfoncier.
           </span>
         </div>
       </div>
