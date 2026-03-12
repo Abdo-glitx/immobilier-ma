@@ -900,7 +900,13 @@ export default function ImmobilierMA() {
           {tab === "blog" && articleSlug && (
             <ArticleView
               slug={articleSlug}
-              onBack={(pairSlug) => pairSlug ? setArticleSlug(pairSlug) : setArticleSlug(null)}
+              onBack={(pairSlug) => {
+                if (pairSlug && typeof pairSlug === "string") {
+                  setArticleSlug(pairSlug);
+                } else {
+                  setArticleSlug(null);
+                }
+              }}
               onCTA={handleCTA}
               lang="fr"
             />
