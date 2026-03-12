@@ -1,5 +1,15 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { BlogList, ArticleView } from "./Blog.jsx";
+
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, []);
+  return isMobile;
+}
 
 // ── Official Rates (Sources: Crédit du Maroc, Valfoncier, CGI 2025) ──────────
 const RATES = {
@@ -247,6 +257,7 @@ function Card({ title, icon, children, accent }) {
 
 // ── TAB 1: Frais de Notaire ───────────────────────────────────
 function FraisNotaire() {
+  const isMobile = useIsMobile();
   const [price, setPrice] = useState(1500000);
   const [withAgency, setWithAgency] = useState(true);
   const [agencyRate, setAgencyRate] = useState(2.5);
@@ -267,8 +278,7 @@ function FraisNotaire() {
   const prixReel = price + totalAll;
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, alignItems: "start" }}>
-      {/* INPUTS */}
+    <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 16, alignItems: "start" }}>
       <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
         <Card title="Votre bien immobilier" icon="🏠">
           <div style={{ padding: "16px 16px 0" }}>
@@ -411,6 +421,7 @@ function FraisNotaire() {
 
 // ── TAB 2: Droits d'Enregistrement ───────────────────────────
 function DroitsEnregistrement() {
+  const isMobile = useIsMobile();
   const [price, setPrice] = useState(800000);
   const [type, setType] = useState("habitation");
 
@@ -427,7 +438,7 @@ function DroitsEnregistrement() {
   const total = droits + conservation;
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, alignItems: "start" }}>
+    <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 16, alignItems: "start" }}>
       <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
         <Card title="Type de bien et transaction" icon="🏛️">
           <div style={{ padding: "16px 16px 4px" }}>
@@ -547,6 +558,7 @@ function DroitsEnregistrement() {
 
 // ── TAB 3: Simulation Crédit ──────────────────────────────────
 function SimulationCredit() {
+  const isMobile = useIsMobile();
   const [prix, setPrix] = useState(1200000);
   const [apport, setApport] = useState(300000);
   const [duree, setDuree] = useState(20);
@@ -576,7 +588,7 @@ function SimulationCredit() {
   const tauxEndettementSalaire = mensualiteAssurance > 0 ? (mensualiteAssurance / 0.35) : 0;
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, alignItems: "start" }}>
+    <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 16, alignItems: "start" }}>
       <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
         <Card title="Paramètres du crédit" icon="🏦">
           <div style={{ padding: "16px 16px 4px" }}>
@@ -668,6 +680,7 @@ function SimulationCredit() {
 
 // ── TAB 4: Coût Total Acquisition ────────────────────────────
 function CoutTotal() {
+  const isMobile = useIsMobile();
   const [prix, setPrix] = useState(1500000);
   const [withAgency, setWithAgency] = useState(true);
   const [withCredit, setWithCredit] = useState(true);
@@ -705,7 +718,7 @@ function CoutTotal() {
   ];
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, alignItems: "start" }}>
+    <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 16, alignItems: "start" }}>
       <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
         <Card title="Votre acquisition" icon="🏠">
           <div style={{ padding: "16px 16px 4px" }}>
@@ -797,6 +810,7 @@ function CoutTotal() {
 export default function ImmobilierMA() {
   const [tab, setTab] = useState("notaire");
   const [articleSlug, setArticleSlug] = useState(null);
+  const isMobile = useIsMobile();
 
   const handleCTA = (targetTab) => {
     setArticleSlug(null);
@@ -842,45 +856,47 @@ export default function ImmobilierMA() {
                 width: 42, height: 42, borderRadius: 12,
                 background: `linear-gradient(135deg, ${emerald}, ${emeraldDark})`,
                 display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 22, boxShadow: `0 4px 12px rgba(10,123,92,0.4)`,
+                fontSize: 22, boxShadow: `0 4px 12px rgba(10,123,92,0.4)`, flexShrink: 0,
               }}>🏡</div>
               <div>
-                <div style={{ fontSize: 22, fontWeight: 900, color: white, letterSpacing: "-0.5px" }}>
+                <div style={{ fontSize: isMobile ? 18 : 22, fontWeight: 900, color: white, letterSpacing: "-0.5px" }}>
                   ImmobilierMA
                 </div>
                 <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)" }}>
-                  Frais de notaire · Enregistrement · Crédit · Coût total
+                  {isMobile ? "Simulateur fiscal Maroc 2026" : "Frais de notaire · Enregistrement · Crédit · Coût total"}
                 </div>
               </div>
             </div>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              {[
-                { label: "✓ Données officielles CGI 2025", color: emerald },
-                { label: "🇲🇦 Maroc uniquement", color: "rgba(255,255,255,0.6)" },
-              ].map(b => (
-                <span key={b.label} style={{
-                  fontSize: 11, fontWeight: 600, padding: "4px 10px",
-                  borderRadius: 20, border: `1px solid ${b.color}50`,
-                  color: b.color, background: `${b.color}15`,
-                }}>{b.label}</span>
-              ))}
-            </div>
+            {!isMobile && (
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                {[
+                  { label: "✓ Données officielles CGI 2025", color: emerald },
+                  { label: "🇲🇦 Maroc uniquement", color: "rgba(255,255,255,0.6)" },
+                ].map(b => (
+                  <span key={b.label} style={{
+                    fontSize: 11, fontWeight: 600, padding: "4px 10px",
+                    borderRadius: 20, border: `1px solid ${b.color}50`,
+                    color: b.color, background: `${b.color}15`,
+                  }}>{b.label}</span>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* TABS */}
           <div style={{ display: "flex", gap: 2, overflowX: "auto" }}>
             {TABS.map(t => (
               <button key={t.id} onClick={() => setTab(t.id)} style={{
-                padding: "12px 16px", border: "none", fontFamily: "inherit",
+                padding: isMobile ? "10px 10px" : "12px 16px", border: "none", fontFamily: "inherit",
                 background: "transparent",
                 borderBottom: `3px solid ${tab === t.id ? emerald : "transparent"}`,
                 color: tab === t.id ? white : "rgba(255,255,255,0.55)",
                 fontWeight: tab === t.id ? 700 : 500,
-                fontSize: 13, whiteSpace: "nowrap",
+                fontSize: isMobile ? 18 : 13, whiteSpace: "nowrap",
                 transition: "all 0.15s",
               }}>
-                <span style={{ marginRight: 6 }}>{t.icon}</span>
-                {t.label}
+                <span style={{ marginRight: isMobile ? 0 : 6 }}>{t.icon}</span>
+                {!isMobile && t.label}
               </button>
             ))}
           </div>
@@ -888,7 +904,7 @@ export default function ImmobilierMA() {
       </div>
 
       {/* CONTENT */}
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "24px 16px 48px" }}>
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: isMobile ? "16px 12px 48px" : "24px 16px 48px" }}>
         <div className="content" key={tab + articleSlug}>
           {tab === "notaire"        && <FraisNotaire />}
           {tab === "enregistrement" && <DroitsEnregistrement />}
@@ -900,13 +916,7 @@ export default function ImmobilierMA() {
           {tab === "blog" && articleSlug && (
             <ArticleView
               slug={articleSlug}
-              onBack={(pairSlug) => {
-                if (pairSlug && typeof pairSlug === "string") {
-                  setArticleSlug(pairSlug);
-                } else {
-                  setArticleSlug(null);
-                }
-              }}
+              onBack={(pairSlug) => pairSlug ? setArticleSlug(pairSlug) : setArticleSlug(null)}
               onCTA={handleCTA}
               lang="fr"
             />
